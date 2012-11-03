@@ -70,9 +70,10 @@ filter 'recent_sold' => sub {
         my $history = decode_json $history_json;
 
         $c->stash->{recent_sold} = [map +{
-            v_name => $_->{variation},
-            t_name => $_->{ticket},
-            a_name => $_->{artist},
+            v_name  => $_->{variation},
+            t_name  => $_->{ticket},
+            a_name  => $_->{artist},
+            seat_id => $_->{seat_id},
         }, @$history];
 
         $app->($self, $c);
@@ -89,22 +90,17 @@ get '/' => [qw(recent_sold)] => sub {
 
 get '/artist/:artistid' => [qw(recent_sold)] => sub {
     my ($self, $c) = @_;
-    my $artist = $self->dbh->select_row(
-        'SELECT id, name FROM artist WHERE id = ? LIMIT 1',
-        $c->args->{artistid},
-    );
+    my $artist = $self->artist($c->args->{artistid});
+
     my $tickets = $self->dbh->select_all(
         'SELECT id, name FROM ticket WHERE artist_id = ? ORDER BY id',
         $artist->{id},
     );
     for my $ticket (@$tickets) {
-        my $count = $self->dbh->select_one(
-            'SELECT COUNT(*) FROM variation
-             INNER JOIN stock ON stock.variation_id = variation.id
-             WHERE variation.ticket_id = ? AND stock.order_id IS NULL',
-            $ticket->{id},
+        my $variation = $self->dbh->select_row(
+            'SELECT id FROM variation WHERE ticket_id = ?', $ticket->{id},
         );
-        $ticket->{count} = $count;
+        $ticket->{count} = $self->redis->scard('stock:' . $variation->{id});
     }
     $c->render('artist.tx', {
         artist  => $artist,
@@ -151,12 +147,12 @@ post '/buy' => sub {
     my $seat_id = $redis->spop('stock:' . $variation_id);
 
     if ($seat_id) {
-        my $variation = $self->dbh->select_one(
+        my $variation = $self->dbh->select_row(
             'SELECT * FROM variation WHERE id = ?',
             $variation_id,
         );
 
-        my $ticket = $self->dbh->select_one(
+        my $ticket = $self->dbh->select_row(
             'SELECT * FROM ticket WHERE id = ?', $variation->{ticket_id},
         );
 
