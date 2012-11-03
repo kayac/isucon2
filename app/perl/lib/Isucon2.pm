@@ -2,6 +2,7 @@ package Isucon2;
 use strict;
 use warnings;
 use utf8;
+use 5.014;
 
 use Kossy;
 
@@ -143,12 +144,13 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
 post '/ticket/update_table_cache' => sub {
     my ($self, $c) = @_;
 
-    my $tickets = $self->dbh->select_all(
+    state $tickets = $self->dbh->select_all(
         'SELECT id FROM ticket',
     );
+    state $variations_cache = {};
 
     for my $ticket_id (map { $_->{id} } @$tickets) {
-        my $variations = $self->dbh->select_all(
+        my $variations = $variations_cache->{ $ticket_id } ||= $self->dbh->select_all(
             'SELECT id, name FROM variation WHERE ticket_id = ?', $ticket_id,
         );
 
