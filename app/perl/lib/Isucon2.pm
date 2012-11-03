@@ -47,18 +47,34 @@ sub redis {
     };
 }
 
+sub artist {
+    my ($self, $id) = @_;
+
+    $self->{_artist} ||= do {
+        my $rows = $self->dbh->select_all('SELECT * FROM artist');
+        my $r;
+        for my $row (@$rows) {
+            $r->{ $row->{id} } = $row;
+        }
+        $r;
+    };
+    $self->{_artist}{$id};
+}
+
 filter 'recent_sold' => sub {
     my ($app) = @_;
     sub {
         my ($self, $c) = @_;
-        $c->stash->{recent_sold} = $self->dbh->select_all(
-            'SELECT stock.seat_id, variation.name AS v_name, ticket.name AS t_name, artist.name AS a_name FROM stock
-               JOIN variation ON stock.variation_id = variation.id
-               JOIN ticket ON variation.ticket_id = ticket.id
-               JOIN artist ON ticket.artist_id = artist.id
-             WHERE order_id IS NOT NULL
-             ORDER BY order_id DESC LIMIT 10',
-        );
+
+        my $history_json = '[' . join(',', $self->redis->lrange('order_history', 0, 9)) . ']';
+        my $history = decode_json $history_json;
+
+        $c->stash->{recent_sold} = [map +{
+            v_name => $_->{variation},
+            t_name => $_->{ticket},
+            a_name => $_->{artist},
+        }, @$history];
+
         $app->($self, $c);
     }
 };
@@ -135,10 +151,24 @@ post '/buy' => sub {
     my $seat_id = $redis->spop('stock:' . $variation_id);
 
     if ($seat_id) {
+        my $variation = $self->dbh->select_one(
+            'SELECT * FROM variation WHERE id = ?',
+            $variation_id,
+        );
+
+        my $ticket = $self->dbh->select_one(
+            'SELECT * FROM ticket WHERE id = ?', $variation->{ticket_id},
+        );
+
+        my $artist = $self->artist( $ticket->{artist_id} );
+
         $redis->lpush('order_history', encode_json({
             variation_id => $variation_id,
             seat_id      => $seat_id,
             member_id    => $member_id,
+            artist       => $artist->{name},
+            ticket       => $ticket->{name},
+            variation    => $variation->{name},
             ts           => scalar time,
         }));
 
