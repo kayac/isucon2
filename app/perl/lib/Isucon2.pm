@@ -7,6 +7,7 @@ use Kossy;
 
 use DBIx::Sunny;
 use JSON 'decode_json';
+use Redis;
 
 sub load_config {
     my $self = shift;
@@ -32,6 +33,16 @@ sub dbh {
                 mysql_enable_utf8   => 1,
                 mysql_auto_reconnect => 1,
             },
+        );
+    };
+}
+
+sub redis {
+    my ($self) = @_;
+    $self->{_redis} ||= do {
+        Redis->new(
+            encoding => undef,
+            %{ $self->load_config->{redis} },
         );
     };
 }
@@ -174,6 +185,18 @@ post '/admin' => sub {
         $self->dbh->query($sql) if $sql;
     }
     close($fh);
+
+    # stock を redis にうつす、TODO: 本番データで60秒超えそうだったら生プロトコル作って流すようにする
+    my $redis = $self->redis;
+    $redis->flushdb;
+
+    my $rows = $self->dbh->select_all(
+        'SELECT * FROM stock',
+    );
+    for my $row (@$rows) {
+        $redis->sadd('stock:' . $row->{variation_id}, $row->{seat_id}, sub {});
+    }
+    $redis->wait_all_responses;
 
     $c->redirect('/admin')
 };
