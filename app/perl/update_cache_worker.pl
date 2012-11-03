@@ -4,6 +4,7 @@ use strict;
 use Furl;
 use Time::HiRes qw/ sleep /;
 use Log::Minimal;
+use Devel::KYTProf;
 
 my $ua = Furl->new;
 while (1) {
