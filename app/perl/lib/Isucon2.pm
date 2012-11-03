@@ -125,7 +125,7 @@ post '/buy' => sub {
     );
     my $order_id = $self->dbh->last_insert_id;
     my $rows = $self->dbh->query(
-        'UPDATE stock SET order_id = ? WHERE variation_id = ? AND order_id IS NULL ORDER BY RAND() LIMIT 1',
+        'UPDATE stock SET order_id = ? WHERE variation_id = ? AND order_id IS NULL LIMIT 1',
         $order_id, $variation_id,
     );
     if ($rows > 0) {
