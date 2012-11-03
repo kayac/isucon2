@@ -166,6 +166,7 @@ post '/ticket/update_table_cache' => sub {
 
         for my $variation (@$variations) {
             my @stocks = $self->redis->smembers('stock:' . $variation->{id});
+            $variation->{stock} = {};
             $variation->{stock}{$_} = 1 for @stocks;
             $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
         }
