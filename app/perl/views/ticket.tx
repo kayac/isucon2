@@ -26,7 +26,7 @@
   <tr>
 :       for [0 .. 63] -> $col {
 :         my $key = to_02d($row) ~ '-' ~ to_02d($col)
-    <td id="<: $key :>" class="<: $stock[$key].order_id ? 'unavailable' : 'available' :>"></td>
+    <td id="<: $key :>" class="<: $stock[$key] ? 'available' : 'unavailable' :>"></td>
 :       }
   </tr>
 :     }

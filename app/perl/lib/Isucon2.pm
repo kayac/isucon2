@@ -128,12 +128,8 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
         $ticket->{id},
     );
     for my $variation (@$variations) {
-        $variation->{stock} = $self->dbh->selectall_hashref(
-            'SELECT seat_id, order_id FROM stock WHERE variation_id = ?',
-            'seat_id',
-            {},
-            $variation->{id},
-        );
+        my @stocks = $self->redis->smembers('stock:' . $variation->{id});
+        $variation->{stock}{$_} = 1 for @stocks;
         $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
     }
     $c->render('ticket.tx', {
