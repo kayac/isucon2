@@ -66,19 +66,15 @@ filter 'recent_sold' => sub {
     sub {
         my ($self, $c) = @_;
 
-        # ダミーがあるので多めにとる、要調整
-        my $history_json = '[' . join(',', $self->redis->lrange('order_history', -101, -1)) . ']';
+        my $history_json = '[' . join(',', $self->redis->lrange('order_history', -11, -1)) . ']';
         my $history = decode_json $history_json;
-
-        my @history = grep { $_->{variation} } @$history;
-        @history = @history[-10, -9, -8, -7, -6, -5, -4, -3, -2, -1] if @history >= 11;
 
         $c->stash->{recent_sold} = [map +{
             v_name  => $_->{variation},
             t_name  => $_->{ticket},
             a_name  => $_->{artist},
             seat_id => $_->{seat_id},
-        }, @history];
+        }, @$history];
 
         $app->($self, $c);
     }
@@ -154,13 +150,7 @@ post '/buy' => sub {
     my $redis = $self->redis;
 
     # stockから一つとる
-    $redis->multi;
-    $redis->spop('stock:' . $variation_id);
-    $redis->rpush('order_history', '{}'); # dummy
-    my $res = $redis->exec;
-
-    my $seat_id = $res->[0];
-    my $pos     = $res->[1];
+    my $seat_id = $redis->spop('stock:' . $variation_id);
 
     if ($seat_id) {
         my $variation = $self->dbh->select_row(
@@ -174,7 +164,7 @@ post '/buy' => sub {
 
         my $artist = $self->artist( $ticket->{artist_id} );
 
-        $redis->lset('order_history', $pos - 1, encode_json({
+        $redis->rpush('order_history', encode_json({
             variation_id => $variation_id,
             seat_id      => $seat_id,
             member_id    => $member_id,
