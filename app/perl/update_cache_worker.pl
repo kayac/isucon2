@@ -6,9 +6,11 @@ use Time::HiRes qw/ sleep /;
 use Log::Minimal;
 use Devel::KYTProf;
 
+my $path = shift || 1;
+
 my $ua = Furl->new;
 while (1) {
-    my $res = $ua->post("http://127.0.0.1:5001/ticket/update_table_cache");
+    my $res = $ua->post("http://127.0.0.1:5001/ticket/update_table_cache/$path");
     if ($res->is_success) {
     }
     else {
