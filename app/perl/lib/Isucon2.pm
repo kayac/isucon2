@@ -74,7 +74,7 @@ filter 'recent_sold' => sub {
             t_name  => $_->{ticket},
             a_name  => $_->{artist},
             seat_id => $_->{seat_id},
-        }, @$history];
+        }, reverse @$history];
 
         $app->($self, $c);
     }
