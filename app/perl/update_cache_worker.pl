@@ -3,6 +3,7 @@
 use strict;
 use Furl;
 use Time::HiRes qw/ sleep /;
+use Log::Minimal;
 
 my $ua = Furl->new;
 while (1) {
@@ -10,7 +11,7 @@ while (1) {
     if ($res->is_success) {
     }
     else {
-        warn $res->status_line;
+        warnf "failed: %s", $res->status_line;
     }
-    sleep 0.5;
+    sleep 0.1;
 }
