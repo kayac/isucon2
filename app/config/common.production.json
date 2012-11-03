@@ -5,5 +5,9 @@
       "dbname" : "isucon2",
       "username" : "isucon2app",
       "host" : "125.6.152.128"
+   },
+
+   "redis": {
+       "server": "db03:6369"
    }
 }
