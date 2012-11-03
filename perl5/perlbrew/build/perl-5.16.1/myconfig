@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# This script is designed to provide a handy summary of the configuration
+# information being used to build perl. This is especially useful if you
+# are requesting help from comp.lang.perl.misc on usenet or via mail.
+
+# Note that the text lines /^Summary of/ .. /^\s*$/ are copied into Config.pm.
+cat <<'!NO!SUBS!'
+Summary of my perl5 (revision 5 version 16 subversion 1) configuration:
+   
+  Platform:
+    osname=linux, osvers=2.6.18-308.16.1.el5xen, archname=x86_64-linux
+    uname='linux work101 2.6.18-308.16.1.el5xen #1 smp tue oct 2 22:50:05 edt 2012 x86_64 x86_64 x86_64 gnulinux '
+    config_args='-de -Dprefix=/home/isucon/perl5/perlbrew/perls/perl-5.16.1 -Aeval:scriptdir=/home/isucon/perl5/perlbrew/perls/perl-5.16.1/bin'
+    hint=recommended, useposix=true, d_sigaction=define
+    useithreads=undef, usemultiplicity=undef
+    useperlio=define, d_sfio=undef, uselargefiles=define, usesocks=undef
+    use64bitint=define, use64bitall=define, uselongdouble=undef
+    usemymalloc=n, bincompat5005=undef
+  Compiler:
+    cc='cc', ccflags ='-fno-strict-aliasing -pipe -fstack-protector -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64',
+    optimize='-O2',
+    cppflags='-fno-strict-aliasing -pipe -fstack-protector -I/usr/local/include'
+    ccversion='', gccversion='4.1.2 20080704 (Red Hat 4.1.2-52)', gccosandvers=''
+    intsize=4, longsize=8, ptrsize=8, doublesize=8, byteorder=12345678
+    d_longlong=define, longlongsize=8, d_longdbl=define, longdblsize=16
+    ivtype='long', ivsize=8, nvtype='double', nvsize=8, Off_t='off_t', lseeksize=8
+    alignbytes=8, prototype=define
+  Linker and Libraries:
+    ld='cc', ldflags =' -fstack-protector -L/usr/local/lib'
+    libpth=/usr/local/lib /lib /usr/lib /lib64 /usr/lib64 /usr/local/lib64
+    libs=-lnsl -lgdbm -ldb -ldl -lm -lcrypt -lutil -lc
+    perllibs=-lnsl -ldl -lm -lcrypt -lutil -lc
+    libc=/lib/libc-2.5.so, so=so, useshrplib=false, libperl=libperl.a
+    gnulibc_version='2.5'
+  Dynamic Linking:
+    dlsrc=dl_dlopen.xs, dlext=so, d_dlsymun=undef, ccdlflags='-Wl,-E'
+    cccdlflags='-fPIC', lddlflags='-shared -O2 -L/usr/local/lib -fstack-protector'
+
+!NO!SUBS!

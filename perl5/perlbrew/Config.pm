@@ -1,0 +1,1 @@
+$App::perlbrew::CONFIG = {};

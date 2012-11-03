@@ -1,0 +1,14 @@
+Changes
+corelist
+identify-dependencies
+lib/Module/CoreList.pm
+lib/Module/CoreList.pod
+README
+MANIFEST
+Makefile.PL
+META.yml
+t/corelist.t
+t/deprecated.t
+t/find_modules.t
+t/pod.t
+META.json                                Module JSON meta-data (added by MakeMaker)

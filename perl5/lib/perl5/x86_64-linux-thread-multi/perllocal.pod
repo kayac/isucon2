@@ -1,0 +1,22 @@
+=head2 Thu Nov  1 18:03:33 2012: C<Module> L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>
+
+=over 4
+
+=item *
+
+C<installed into: /home/isucon/perl5/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 6.62>
+
+=item *
+
+C<EXE_FILES: bin/instmodsh>
+
+=back
+

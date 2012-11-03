@@ -1,0 +1,23 @@
+setenv PERLBREW_CSHRC_VERSION 0.54
+
+
+if ( $?PERLBREW_HOME == 0 ) then
+    setenv PERLBREW_HOME "$HOME/.perlbrew"
+endif
+
+if ( $?PERLBREW_ROOT == 0 ) then
+    setenv PERLBREW_ROOT "$HOME/perl5/perlbrew"
+endif
+
+if ( $?PERLBREW_SKIP_INIT == 0 ) then
+    if ( -f "$PERLBREW_HOME/init" ) then
+        source "$PERLBREW_HOME/init"
+    endif
+endif
+
+if ( $?PERLBREW_PATH == 0 ) then
+    setenv PERLBREW_PATH "$PERLBREW_ROOT/bin"
+endif
+
+source "$PERLBREW_ROOT/etc/csh_set_path"
+alias perlbrew 'source $PERLBREW_ROOT/etc/csh_wrapper'

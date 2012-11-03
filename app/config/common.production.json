@@ -1,0 +1,9 @@
+{
+   "database" : {
+      "password" : "isunageruna",
+      "port" : 3306,
+      "dbname" : "isucon2",
+      "username" : "isucon2app",
+      "host" : "125.6.152.128"
+   }
+}
