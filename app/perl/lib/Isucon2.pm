@@ -154,7 +154,7 @@ post '/ticket/update_table_cache' => sub {
         2   => [3,4,5],
     };
 
-    my $tickets = $tickets2process->{process};
+    my $tickets = $tickets2process->{$process};
 
     state $variations_cache = {};
     for my $ticket_id (@$tickets) {
