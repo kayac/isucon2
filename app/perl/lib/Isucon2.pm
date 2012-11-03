@@ -143,8 +143,11 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
 post '/ticket/update_table_cache' => sub {
     my ($self, $c) = @_;
 
+    my @ticket_ids = $self->redis->smembers('table_cache_update');
+    $self->redis->del('table_cache_update');
+
     my $tickets = $self->dbh->select_all(
-        'SELECT id FROM ticket',
+        'SELECT id FROM ticket WHERE id IN (' . join(',', @ticket_ids) . ')',
     );
 
     for my $ticket_id (map { $_->{id} } @$tickets) {
@@ -155,7 +158,6 @@ post '/ticket/update_table_cache' => sub {
         for my $variation (@$variations) {
             my @stocks = $self->redis->smembers('stock:' . $variation->{id});
             $variation->{stock}{$_} = 1 for @stocks;
-            $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
         }
 
         my $res = $c->render('ticket_table.tx', {
@@ -199,7 +201,10 @@ post '/buy' => sub {
             ticket       => $ticket->{name},
             variation    => $variation->{name},
             ts           => scalar time,
-        }));
+        }), sub {});
+        $redis->sadd('table_cache_update', $ticket->{id}, sub {});
+
+        $redis->wait_all_responses;
 
         $c->render('complete.tx', { seat_id => $seat_id, member_id => $member_id });
     }
@@ -253,6 +258,15 @@ post '/admin' => sub {
     for my $row (@$rows) {
         $redis->sadd('stock:' . $row->{variation_id}, $row->{seat_id}, sub {});
     }
+
+    # cacheの更新リストにticket全部を淹れる
+    my $tickets = $self->dbh->select_all(
+        'SELECT id FROM ticket',
+    );
+    for my $ticket_id (map { $_->{id} } @$tickets) {
+        $redis->sadd('table_cache_update', $ticket_id, sub {});
+    }
+
     $redis->wait_all_responses;
 
     $c->redirect('/admin')
