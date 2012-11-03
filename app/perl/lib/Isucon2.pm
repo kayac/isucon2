@@ -6,7 +6,7 @@ use utf8;
 use Kossy;
 
 use DBIx::Sunny;
-use JSON 'decode_json';
+use JSON::XS;
 use Redis;
 
 sub load_config {
@@ -129,25 +129,22 @@ post '/buy' => sub {
     my $variation_id = $c->req->param('variation_id');
     my $member_id = $c->req->param('member_id');
 
-    my $txn = $self->dbh->txn_scope();
-    $self->dbh->query(
-        'INSERT INTO order_request (member_id) VALUES (?)',
-        $member_id,
-    );
-    my $order_id = $self->dbh->last_insert_id;
-    my $rows = $self->dbh->query(
-        'UPDATE stock SET order_id = ? WHERE variation_id = ? AND order_id IS NULL ORDER BY RAND() LIMIT 1',
-        $order_id, $variation_id,
-    );
-    if ($rows > 0) {
-        my $seat_id = $self->dbh->select_one(
-            'SELECT seat_id FROM stock WHERE order_id = ? LIMIT 1',
-            $order_id,
-        );
-        $txn->commit;
+    my $redis = $self->redis;
+
+    # stockから一つとる
+    my $seat_id = $redis->spop('stock:' . $variation_id);
+
+    if ($seat_id) {
+        $redis->lpush('order_history', encode_json({
+            variation_id => $variation_id,
+            seat_id      => $seat_id,
+            member_id    => $member_id,
+            ts           => scalar time,
+        }));
+
         $c->render('complete.tx', { seat_id => $seat_id, member_id => $member_id });
-    } else {
-        $txn->rollback;
+    }
+    else {
         $c->render('soldout.tx');
     }
 };
