@@ -8,6 +8,6 @@
    },
 
    "redis": {
-       "server": "db03:6369"
+       "server": "db03:6379"
    }
 }
