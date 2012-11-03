@@ -10,6 +10,8 @@ use Isucon2;
 use Plack::Builder;
 
 my $isucon2 = Isucon2->new;
+$isucon2->load_config;
+
 builder {
     enable 'Static',
         path => qr!^/(?:(?:css|js|images)/|favicon\.ico$)!,
