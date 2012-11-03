@@ -71,13 +71,14 @@ filter 'recent_sold' => sub {
         my $history = decode_json $history_json;
 
         my @history = grep { $_->{variation} } @$history;
+        @history = @history[-10, -9, -8, -7, -6, -5, -4, -3, -2, -1] if @history >= 11;
 
         $c->stash->{recent_sold} = [map +{
             v_name  => $_->{variation},
             t_name  => $_->{ticket},
             a_name  => $_->{artist},
             seat_id => $_->{seat_id},
-        }, @history[-11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1] ];
+        }, @history];
 
         $app->($self, $c);
     }
