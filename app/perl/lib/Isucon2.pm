@@ -66,7 +66,7 @@ filter 'recent_sold' => sub {
     sub {
         my ($self, $c) = @_;
 
-        my $history_json = '[' . join(',', $self->redis->lrange('order_history', 0, 9)) . ']';
+        my $history_json = '[' . join(',', $self->redis->lrange('order_history', -11, -1)) . ']';
         my $history = decode_json $history_json;
 
         $c->stash->{recent_sold} = [map +{
@@ -155,7 +155,7 @@ post '/buy' => sub {
 
         my $artist = $self->artist( $ticket->{artist_id} );
 
-        $redis->lpush('order_history', encode_json({
+        $redis->rpush('order_history', encode_json({
             variation_id => $variation_id,
             seat_id      => $seat_id,
             member_id    => $member_id,
@@ -182,6 +182,7 @@ get '/admin' => sub {
 get '/admin/order.csv' => sub {
     my ($self, $c) = @_;
     $c->res->content_type('text/csv');
+
     my $orders = $self->dbh->select_all(
         'SELECT order_request.*, stock.seat_id, stock.variation_id, stock.updated_at
          FROM order_request JOIN stock ON order_request.id = stock.order_id
