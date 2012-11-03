@@ -97,10 +97,19 @@ get '/artist/:artistid' => [qw(recent_sold)] => sub {
         $artist->{id},
     );
     for my $ticket (@$tickets) {
-        my $variation = $self->dbh->select_row(
+        my $rows = $self->dbh->select_all(
             'SELECT id FROM variation WHERE ticket_id = ?', $ticket->{id},
         );
-        $ticket->{count} = $self->redis->scard('stock:' . $variation->{id});
+
+        my $count = 0;
+        for my $variation_id (map { $_->{id} } @$rows) {
+            $self->redis->scard('stock:' . $variation_id, sub {
+                $count += $_[0];
+            });
+        }
+        $self->redis->wait_all_responses;
+
+        $ticket->{count} = $count;
     }
     $c->render('artist.tx', {
         artist  => $artist,
