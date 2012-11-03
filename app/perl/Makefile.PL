@@ -6,6 +6,7 @@ requires 'Kossy'       => '0.12';
 requires 'DBIx::Sunny' => '0.17';
 requires 'DBD::mysql'  => '4.022';
 requires 'Starman'     => '0.3003';
+requires 'JSON::XS';
 requires 'Redis';
 
 WriteAll;
