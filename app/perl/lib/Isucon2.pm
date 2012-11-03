@@ -44,6 +44,8 @@ sub redis {
     $self->{_redis} ||= do {
         Redis->new(
             encoding => undef,
+            reconnect => 1,     # reconnect every 500ms up to 1 seconds.
+            every     => 500,
             %{ $self->load_config->{redis} },
         );
     };
