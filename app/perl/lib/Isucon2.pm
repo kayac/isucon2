@@ -141,10 +141,10 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
     });
 };
 
-post '/ticket/update_table_cache/:process' => sub {
+post '/ticket/update_table_cache' => sub {
     my ($self, $c) = @_;
 
-    my $process = $c->args->{process}; # 1 or 2
+    my $process = $c->req->param('process'); # 1 or 2
 
     #state $tickets2process = $self->dbh->select_all(
     #    'SELECT id FROM ticket',
