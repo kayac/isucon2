@@ -125,10 +125,7 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
             {},
             $variation->{id},
         );
-        $variation->{vacancy} = $self->dbh->select_one(
-            'SELECT COUNT(*) FROM stock WHERE variation_id = ? AND order_id IS NULL',
-            $variation->{id},
-        );
+        $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
     }
     $c->render('ticket.tx', {
         ticket     => $ticket,
