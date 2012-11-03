@@ -8,6 +8,7 @@ use Kossy;
 use DBIx::Sunny;
 use JSON::XS;
 use Redis;
+use Encode;
 
 sub load_config {
     my $self = shift;
@@ -127,15 +128,45 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
         'SELECT id, name FROM variation WHERE ticket_id = ? ORDER BY id',
         $ticket->{id},
     );
+
     for my $variation (@$variations) {
-        my @stocks = $self->redis->smembers('stock:' . $variation->{id});
-        $variation->{stock}{$_} = 1 for @stocks;
         $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
     }
+
     $c->render('ticket.tx', {
         ticket     => $ticket,
         variations => $variations,
+        table      => decode_utf8 $self->redis->get('table_cache:' . $ticket->{id}),
     });
+};
+
+post '/ticket/update_table_cache' => sub {
+    my ($self, $c) = @_;
+
+    my $tickets = $self->dbh->select_all(
+        'SELECT id FROM ticket',
+    );
+
+    for my $ticket_id (map { $_->{id} } @$tickets) {
+        my $variations = $self->dbh->select_all(
+            'SELECT id, name FROM variation WHERE ticket_id = ?', $ticket_id,
+        );
+
+        for my $variation (@$variations) {
+            my @stocks = $self->redis->smembers('stock:' . $variation->{id});
+            $variation->{stock}{$_} = 1 for @stocks;
+            $variation->{vacancy} = $self->redis->scard('stock:' . $variation->{id});
+        }
+
+        my $res = $c->render('ticket_table.tx', {
+            variations => $variations,
+        });
+
+        $self->redis->set('table_cache:' . $ticket_id, encode_utf8 $res->body);
+    }
+
+    $c->res->body('');
+    $c->res;
 };
 
 post '/buy' => sub {

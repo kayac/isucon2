@@ -17,19 +17,5 @@
 </ul>
 
 <h3>席状況</h3>
-:   macro to_02d -> $i { $i < 10 ? '0' ~ $i : $i }
-:   for $variations -> $variation {
-:     my $stock = $variation.stock;
-<h4><: $variation.name :></h4>
-<table class="seats" data-variationid="<: $variation.id :>">
-:     for [0 .. 63] -> $row {
-  <tr>
-:       for [0 .. 63] -> $col {
-:         my $key = to_02d($row) ~ '-' ~ to_02d($col)
-    <td id="<: $key :>" class="<: $stock[$key] ? 'available' : 'unavailable' :>"></td>
-:       }
-  </tr>
-:     }
-</table>
-:   }
+<: $table | mark_raw:>
 : }
