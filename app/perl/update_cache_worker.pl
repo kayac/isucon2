@@ -8,7 +8,7 @@ use Devel::KYTProf;
 
 my $ua = Furl->new;
 while (1) {
-    my $res = $ua->post("http://127.0.0.1:5000/ticket/update_table_cache");
+    my $res = $ua->post("http://127.0.0.1:5001/ticket/update_table_cache");
     if ($res->is_success) {
     }
     else {
