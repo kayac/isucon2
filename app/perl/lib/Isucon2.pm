@@ -183,15 +183,15 @@ get '/admin/order.csv' => sub {
     my ($self, $c) = @_;
     $c->res->content_type('text/csv');
 
-    my $orders = $self->dbh->select_all(
-        'SELECT order_request.*, stock.seat_id, stock.variation_id, stock.updated_at
-         FROM order_request JOIN stock ON order_request.id = stock.order_id
-         ORDER BY order_request.id ASC',
-    );
+    my $orders_json = '[' . join(',', $self->redis->lrange('order_history', 0, -1)) . ']';
+    my $orders = decode_json $orders_json;
+
     my $body = '';
+    my $id = 1;
     for my $order (@$orders) {
-        $body .= join ',', @{$order}{qw( id member_id seat_id variation_id updated_at )};
+        $body .= join ',', $id, @{$order}{qw( member_id seat_id variation_id ts )};
         $body .= "\n";
+        $id++;
     }
     $c->res->body($body);
     $c->res;
