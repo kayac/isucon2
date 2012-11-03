@@ -141,15 +141,23 @@ get '/ticket/:ticketid' => [qw(recent_sold)] => sub {
     });
 };
 
-post '/ticket/update_table_cache' => sub {
+post '/ticket/update_table_cache/:process' => sub {
     my ($self, $c) = @_;
 
-    state $tickets = $self->dbh->select_all(
-        'SELECT id FROM ticket',
-    );
-    state $variations_cache = {};
+    my $process = $c->args->{process}; # 1 or 2
 
-    for my $ticket_id (map { $_->{id} } @$tickets) {
+    #state $tickets2process = $self->dbh->select_all(
+    #    'SELECT id FROM ticket',
+    #);
+    state $tickets2process = {
+        1   => [1,2],
+        2   => [3,4,5],
+    };
+
+    my $tickets = $tickets2process->{process};
+
+    state $variations_cache = {};
+    for my $ticket_id (@$tickets) {
         my $variations = $variations_cache->{ $ticket_id } ||= $self->dbh->select_all(
             'SELECT id, name FROM variation WHERE ticket_id = ?', $ticket_id,
         );
